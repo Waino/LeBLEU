@@ -1,8 +1,7 @@
 from __future__ import division, unicode_literals
 
 import collections
-
-NGramProps = collections.namedtuple('NGramProps', ['count', 'length', 'hits'])
+import harry
 
 def make_acceptor(n, limit):
     acc_ratio = limit / n
@@ -29,5 +28,29 @@ def ngrams(seq, max_n, min_n=1, limit=None):
 
 class LeBLEU(object):
     """LeBLEU: Soft BLEU score based on letter edits / Levenshtein distance"""
-    pass
+    def __init__(self, max_n=3, ngram_limit=2000):
+        self.max_n = max_n
+        self.ngram_limit = ngram_limit
+
+    def count_ngrams(self, tokens):
+        ngramcounts = collections.Counter()
+        limit = self.ngram_limit // self.max_n
+        for ngram in ngrams(tokens, self.max_n, min_n=2, limit=limit):
+            ngramcounts[ngram] += 1
+        return ngramcounts
+
+    def distances(self, hyp, ref):
+        hyp = [' '.join(h) for (h, _) in hyp]
+        ref = [' '.join(r) for (r, _) in ref]
+        return harry.compare(hyp, ref, measure='levenshtein')
+
+    def eval_single(self, hypothesis, reference):
+        hyp_words = hypothesis.split()
+        ref_words = reference.split()
+
+        hyp_ngrams = self.count_ngrams(hyp_words).items()
+        ref_ngrams = self.count_ngrams(ref_words).items()
+
+        dist = self.distances(hyp_ngrams, ref_ngrams)
+        return hyp_ngrams, ref_ngrams, dist # FIXME
 
