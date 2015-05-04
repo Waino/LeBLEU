@@ -27,6 +27,21 @@ def ngrams(seq, max_n, min_n=1, limit=None):
                 yield ngram
         staggered.pop()
 
+def best_scores(scores, sortidx, ref_counts, count):
+    """sum together the best scores, taking reference counts into account"""
+    out = 0.0
+    cursor = -1     # best scores at end of sorted matrix
+    while count > 0:
+        score = scores[sortidx[cursor]]
+        # FIXME: early exit if score == 0
+        refc = ref_counts[sortidx[cursor]]
+        refc = min(refc, count)
+        out += refc * score
+        print('adding {} * {} = {}'.format(refc, score, refc * score))
+        count -= refc
+        cursor -= 1
+    return out
+
 class LeBLEU(object):
     """LeBLEU: Soft BLEU score based on letter edits / Levenshtein distance"""
     def __init__(self, max_n=3, threshold=0.4, ngram_limit=2000):
@@ -57,17 +72,17 @@ class LeBLEU(object):
         print(score)
         score = self._score(score, hyp_strs, ref_strs)
         print(score)
-        score.sort()    # FIXME: breaks if ref count other than 1
-        print(score)
+
+        sortidx = score.argsort()
+        ref_counts = [count for (_, count) in ref_ngrams]
 
         hits = np.zeros(self.max_n)
         tot = np.zeros(self.max_n)
         for (i, item) in enumerate(hyp_ngrams):
             hyp, count = item
             order = len(hyp)
-            # sum together the count best scores    # FIXME: breaks if ref count other than 1
-            hits[order - 1] += sum(score[i, -count:])
-            print('{} best: {}'.format(count, score[i, -count:]))
+            # sum together the count best scores
+            hits[order - 1] += best_scores(score[i], sortidx[i], ref_counts, count)
             tot[order - 1] += count
             print(i, hits, tot, hyp)
         precisions = hits / tot
