@@ -49,10 +49,12 @@ class LeBLEU(object):
         self.threshold = threshold
         self.ngram_limit = ngram_limit
 
-    def count_ngrams(self, tokens):
+    def count_ngrams(self, tokens, max_n=None):
+        if max_n is None:
+            max_n = self.max_n
         ngramcounts = collections.Counter()
-        limit = self.ngram_limit // self.max_n
-        for ngram in ngrams(tokens, self.max_n, min_n=1, limit=limit):
+        limit = self.ngram_limit // max_n
+        for ngram in ngrams(tokens, max_n, min_n=1, limit=limit):
             ngramcounts[ngram] += 1
         return ngramcounts
 
@@ -65,7 +67,9 @@ class LeBLEU(object):
 
         hyp_ngrams = self.count_ngrams(hyp_words).items()
         hyp_strs = [' '.join(h) for (h, _) in hyp_ngrams]
-        ref_ngrams = self.count_ngrams(ref_words).items()   # FIXME: up to 2n
+        ref_ngrams = self.count_ngrams(ref_words,
+                                       max_n=(2 * self.max_n)
+                                      ).items()
         ref_strs = [' '.join(r) for (r, _) in ref_ngrams]
 
         score = self.distances(hyp_strs, ref_strs)
