@@ -33,7 +33,9 @@ def best_scores(scores, sortidx, ref_counts, count):
     cursor = -1     # best scores at end of sorted matrix
     while count > 0:
         score = scores[sortidx[cursor]]
-        # FIXME: early exit if score == 0
+        if score == 0:
+            # early exit if no more hits to be found
+            return out
         refc = ref_counts[sortidx[cursor]]
         refc = min(refc, count)
         out += refc * score
