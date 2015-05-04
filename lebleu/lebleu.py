@@ -2,6 +2,7 @@ from __future__ import division, unicode_literals
 
 import collections
 import harry
+import numpy as np
 
 def make_acceptor(n, limit):
     acc_ratio = limit / n
@@ -28,8 +29,9 @@ def ngrams(seq, max_n, min_n=1, limit=None):
 
 class LeBLEU(object):
     """LeBLEU: Soft BLEU score based on letter edits / Levenshtein distance"""
-    def __init__(self, max_n=3, ngram_limit=2000):
+    def __init__(self, max_n=3, threshold=0.4, ngram_limit=2000):
         self.max_n = max_n
+        self.threshold = threshold
         self.ngram_limit = ngram_limit
 
     def count_ngrams(self, tokens):
@@ -40,8 +42,6 @@ class LeBLEU(object):
         return ngramcounts
 
     def distances(self, hyp, ref):
-        hyp = [' '.join(h) for (h, _) in hyp]
-        ref = [' '.join(r) for (r, _) in ref]
         return harry.compare(hyp, ref, measure='levenshtein')
 
     def eval_single(self, hypothesis, reference):
@@ -49,8 +49,27 @@ class LeBLEU(object):
         ref_words = reference.split()
 
         hyp_ngrams = self.count_ngrams(hyp_words).items()
+        hyp_strs = [' '.join(h) for (h, _) in hyp_ngrams]
         ref_ngrams = self.count_ngrams(ref_words).items()
+        ref_strs = [' '.join(r) for (r, _) in ref_ngrams]
 
-        dist = self.distances(hyp_ngrams, ref_ngrams)
+        dist = self.distances(hyp_strs, ref_strs)
+        self._normalize(dist, hyp_strs, ref_strs)
         return hyp_ngrams, ref_ngrams, dist # FIXME
+
+    def _normalize(self, dist, hyp, ref):
+        num_hyps = len(hyp)
+        num_refs = len(ref)
+        ngram_lens = np.zeros((2, num_hyps, num_refs))
+        ngram_lens[0] += np.array(
+            [len(h) for h in hyp],
+            ndmin=2).T
+        ngram_lens[1] += np.array(
+            [len(r) for r in ref],
+            ndmin=2)
+        ngram_lens = ngram_lens.max(axis=0)
+        score = 1.0 - dist / ngram_lens
+        # if the normalized distance is too far, no score is awarded
+        score[score < self.threshold] = 0
+        print(score)    # FIXME
 
