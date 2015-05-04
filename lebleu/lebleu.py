@@ -37,7 +37,7 @@ class LeBLEU(object):
     def count_ngrams(self, tokens):
         ngramcounts = collections.Counter()
         limit = self.ngram_limit // self.max_n
-        for ngram in ngrams(tokens, self.max_n, min_n=2, limit=limit):
+        for ngram in ngrams(tokens, self.max_n, min_n=1, limit=limit):
             ngramcounts[ngram] += 1
         return ngramcounts
 
@@ -53,13 +53,27 @@ class LeBLEU(object):
         ref_ngrams = self.count_ngrams(ref_words).items()
         ref_strs = [' '.join(r) for (r, _) in ref_ngrams]
 
-        dist = self.distances(hyp_strs, ref_strs)
-        self._normalize(dist, hyp_strs, ref_strs)
-        return hyp_ngrams, ref_ngrams, dist # FIXME
+        score = self.distances(hyp_strs, ref_strs)
+        score = self._score(score, hyp_strs, ref_strs)
+        score.sort()
 
-    def _normalize(self, dist, hyp, ref):
+        hits = np.zeros(self.max_n)
+        tot = np.zeros(self.max_n)
+        for (i, item) in enumerate(hyp_ngrams):
+            hyp, count = item
+            order = len(hyp)
+            # sum together the count best scores
+            hits[order - 1] += sum(score[i, -count:])
+            tot[order - 1] += count
+        precisions = hits / tot
+
+        return precisions
+
+    def _score(self, dist, hyp, ref):
         num_hyps = len(hyp)
         num_refs = len(ref)
+
+        # matrix of lengths (in chars) of the longer of the compared strings
         ngram_lens = np.zeros((2, num_hyps, num_refs))
         ngram_lens[0] += np.array(
             [len(h) for h in hyp],
@@ -68,8 +82,10 @@ class LeBLEU(object):
             [len(r) for r in ref],
             ndmin=2)
         ngram_lens = ngram_lens.max(axis=0)
+
+        # distance normalized by said maxlength, negated so bigger is better
         score = 1.0 - dist / ngram_lens
         # if the normalized distance is too far, no score is awarded
         score[score < self.threshold] = 0
-        print(score)    # FIXME
+        return score
 
