@@ -50,21 +50,26 @@ class LeBLEU(object):
 
         hyp_ngrams = self.count_ngrams(hyp_words).items()
         hyp_strs = [' '.join(h) for (h, _) in hyp_ngrams]
-        ref_ngrams = self.count_ngrams(ref_words).items()
+        ref_ngrams = self.count_ngrams(ref_words).items()   # FIXME: up to 2n
         ref_strs = [' '.join(r) for (r, _) in ref_ngrams]
 
         score = self.distances(hyp_strs, ref_strs)
+        print(score)
         score = self._score(score, hyp_strs, ref_strs)
-        score.sort()
+        print(score)
+        score.sort()    # FIXME: breaks if ref count other than 1
+        print(score)
 
         hits = np.zeros(self.max_n)
         tot = np.zeros(self.max_n)
         for (i, item) in enumerate(hyp_ngrams):
             hyp, count = item
             order = len(hyp)
-            # sum together the count best scores
+            # sum together the count best scores    # FIXME: breaks if ref count other than 1
             hits[order - 1] += sum(score[i, -count:])
+            print('{} best: {}'.format(count, score[i, -count:]))
             tot[order - 1] += count
+            print(i, hits, tot, hyp)
         precisions = hits / tot
 
         return precisions
