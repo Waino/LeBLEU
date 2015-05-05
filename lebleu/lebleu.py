@@ -2,6 +2,7 @@ from __future__ import division, unicode_literals
 
 import collections
 import harry
+import scipy
 import numpy as np
 
 def make_acceptor(n, limit):
@@ -44,12 +45,17 @@ def best_scores(scores, sortidx, ref_counts, count):
         cursor -= 1
     return out
 
-class LeBLEU(object):
-    """LeBLEU: Soft BLEU score based on letter edits / Levenshtein distance"""
-    def __init__(self, max_n=3, threshold=0.4, ngram_limit=2000):
+
+class BLEU(object):
+    def __init__(self, max_n=3, ngram_limit=None, average='arithmetic'):
         self.max_n = max_n
-        self.threshold = threshold
         self.ngram_limit = ngram_limit
+        if average == 'arithmetic':
+            self.mean = np.mean
+        elif average == 'geometric':
+            self.mean = scipy.stats.mstats.gmean
+        else:
+            raise Exception('Unknown averaging method "{}"'.format(average))
 
     def count_ngrams(self, tokens, max_n=None):
         if max_n is None:
@@ -60,6 +66,29 @@ class LeBLEU(object):
             ngramcounts[ngram] += 1
         return ngramcounts
 
+    def eval_single(self, hypothesis, reference):
+        # FIXME not implemeted yet
+        pass
+
+    def penalty(self, hyplen, reflen):
+        return min(1.0, np.exp(1.0 - (reflen / hyplen)))
+
+    def combine_scores(self, hits, tot, hyplen, reflen):
+        precisions = hits / tot
+        # FIXME: warn when dropping nans?
+        precisions = precisions[~np.isnan(precisions)]
+        avg = self.mean(precisions)
+        penalty = self.penalty(hyplen, reflen)
+        return penalty * avg
+
+
+
+class LeBLEU(BLEU):
+    """LeBLEU: Soft BLEU score based on letter edits / Levenshtein distance"""
+    def __init__(self, max_n=3, ngram_limit=2000, threshold=0.4):
+        super(LeBLEU, self).__init__(max_n, ngram_limit)
+        self.threshold = threshold
+
     def distances(self, hyp, ref):
         return harry.compare(hyp, ref, measure='levenshtein')
 
@@ -68,18 +97,18 @@ class LeBLEU(object):
         ref_words = reference.split()
 
         hyp_ngrams = self.count_ngrams(hyp_words).items()
-        hyp_strs = [' '.join(h) for (h, _) in hyp_ngrams]
         ref_ngrams = self.count_ngrams(ref_words,
                                        max_n=(2 * self.max_n)
                                       ).items()
+        hyp_strs = [' '.join(h) for (h, _) in hyp_ngrams]
         ref_strs = [' '.join(r) for (r, _) in ref_ngrams]
 
-        score = self.distances(hyp_strs, ref_strs)
-        print(score)
-        score = self._score(score, hyp_strs, ref_strs)
-        print(score)
+        scores = self.distances(hyp_strs, ref_strs)
+        print(scores)
+        scores = self._score(scores, hyp_strs, ref_strs)
+        print(scores)
 
-        sortidx = score.argsort()
+        sortidx = scores.argsort()
         ref_counts = [count for (_, count) in ref_ngrams]
 
         hits = np.zeros(self.max_n)
@@ -88,12 +117,19 @@ class LeBLEU(object):
             hyp, count = item
             order = len(hyp)
             # sum together the count best scores
-            hits[order - 1] += best_scores(score[i], sortidx[i], ref_counts, count)
+            hits[order - 1] += best_scores(scores[i],
+                                           sortidx[i],
+                                           ref_counts,
+                                           count)
             tot[order - 1] += count
             print(i, hits, tot, hyp)
-        precisions = hits / tot
 
-        return precisions
+        score = self.combine_scores(hits,
+                                    tot,
+                                    len(hypothesis),
+                                    len(reference))
+
+        return score
 
     def _score(self, dist, hyp, ref):
         num_hyps = len(hyp)
@@ -114,4 +150,3 @@ class LeBLEU(object):
         # if the normalized distance is too far, no score is awarded
         score[score < self.threshold] = 0
         return score
-
