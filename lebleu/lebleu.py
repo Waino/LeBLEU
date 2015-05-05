@@ -5,6 +5,7 @@ import harry
 import scipy
 import numpy as np
 
+
 def make_acceptor(n, limit):
     acc_ratio = limit / n
     if acc_ratio < 0.5:
@@ -13,6 +14,7 @@ def make_acceptor(n, limit):
     else:
         m = n // (n - limit)
         return lambda i: i % m < (m-1)
+
 
 def ngrams(seq, max_n, min_n=1, limit=None):
     assert min_n > 0
@@ -27,6 +29,7 @@ def ngrams(seq, max_n, min_n=1, limit=None):
             if acc(i):
                 yield ngram
         staggered.pop()
+
 
 def best_scores(scores, sortidx, ref_counts, count):
     """sum together the best scores, taking reference counts into account"""
@@ -82,7 +85,6 @@ class BLEU(object):
         return penalty * avg
 
 
-
 class LeBLEU(BLEU):
     """LeBLEU: Soft BLEU score based on letter edits / Levenshtein distance"""
     def __init__(self, max_n=3, ngram_limit=2000, threshold=0.4):
@@ -92,7 +94,7 @@ class LeBLEU(BLEU):
     def distances(self, hyp, ref):
         return harry.compare(hyp, ref, measure='levenshtein')
 
-    def eval_single(self, hypothesis, reference):
+    def _eval_helper(self, hypothesis, reference):
         hyp_words = hypothesis.split()
         ref_words = reference.split()
 
@@ -123,12 +125,33 @@ class LeBLEU(BLEU):
                                            count)
             tot[order - 1] += count
             print(i, hits, tot, hyp)
+        return (hits, tot)
 
+    def eval_single(self, hypothesis, reference):
+        (hits, tot) = self._eval_helper(hypothesis, reference)
         score = self.combine_scores(hits,
                                     tot,
                                     len(hypothesis),
                                     len(reference))
 
+        return score
+
+    def eval(self, hyps, refs):
+        hits = np.zeros(self.max_n)
+        tot = np.zeros(self.max_n)
+        hyplen = 0
+        reflen = 0
+        for hyp, ref in zip(hyps, refs):
+            hyplen += len(hyp)
+            reflen += len(ref)
+            (h, t) = self._eval_helper(hyp, ref)
+            print('h {} t {}'.format(h, t))
+            hits += h
+            tot += t
+        score = self.combine_scores(hits,
+                                    tot,
+                                    hyplen,
+                                    reflen)
         return score
 
     def _score(self, dist, hyp, ref):
