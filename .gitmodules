@@ -1,3 +1,6 @@
 [submodule "harry"]
 	path = harry
 	url = git@github.com:Waino/harry.git
+[submodule "Levenshtein"]
+	path = python-Levenshtein
+	url = git@github.com:Waino/python-Levenshtein.git
