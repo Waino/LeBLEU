@@ -9,6 +9,7 @@ import numpy as np
 
 def make_acceptor(n, limit):
     acc_ratio = limit / n
+    print('acc_ratio {}'.format(acc_ratio))
     if acc_ratio < 0.5:
         m = n // limit
         return lambda i: i % m == 0
@@ -54,6 +55,8 @@ class BLEU(object):
     def __init__(self, max_n=3, ngram_limit=None, average='arithmetic'):
         self.max_n = max_n
         self.ngram_limit = ngram_limit
+        if self.ngram_limit <= 0:
+            self.ngram_limit = None
         if average == 'arithmetic':
             self.mean = np.mean
         elif average == 'geometric':
@@ -65,7 +68,11 @@ class BLEU(object):
         if max_n is None:
             max_n = self.max_n
         ngramcounts = collections.Counter()
-        limit = self.ngram_limit // max_n
+        if self.ngram_limit is not None:
+            limit = self.ngram_limit // max_n
+            print('limit {}'.format(limit))
+        else:
+            limit = None
         for ngram in ngrams(tokens, max_n, min_n=1, limit=limit):
             ngramcounts[ngram] += 1
         return ngramcounts
@@ -94,7 +101,7 @@ class LeBLEU(BLEU):
 
     def distances(self, hyp, ref):
         #return harry.compare(hyp, ref, measure='levenshtein')
-        return Levenshtein.compare_lists(hyp, ref)
+        return Levenshtein.compare_lists(hyp, ref, 1024.01)
 
     def _eval_helper(self, hypothesis, reference):
         hyp_words = hypothesis.split()

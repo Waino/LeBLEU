@@ -21,4 +21,4 @@ def get_version():
 # so that the package global names are available to the modules
 # when they are imported.
 
-#from .lebleu import FIXME
+from .lebleu import LeBLEU
