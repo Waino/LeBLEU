@@ -101,7 +101,10 @@ class LeBLEU(BLEU):
 
     def distances(self, hyp, ref):
         #return harry.compare(hyp, ref, measure='levenshtein')
-        return Levenshtein.compare_lists(hyp, ref, self.threshold)
+        dist = Levenshtein.compare_lists(hyp, ref, self.threshold)
+        # replace special value -1 meaning "above threshold"
+        dist[dist == -1] = np.NaN
+        return dist
 
     def _eval_helper(self, hypothesis, reference):
         hyp_words = hypothesis.split()
@@ -180,6 +183,8 @@ class LeBLEU(BLEU):
 
         # distance normalized by said maxlength, negated so bigger is better
         score = 1.0 - (dist / ngram_lens)
+        # set lower-bound pruned comparisons to zero score
+        score[np.isnan(score)] = 0
         # if the normalized distance is too far, no score is awarded
         score[score < self.threshold] = 0
         return score
