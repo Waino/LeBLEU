@@ -17,7 +17,7 @@ setup(name='lebleu',
       author_email='stig-arne.gronroos@aalto.fi',
       #url='',
       description='lebleu',
-      packages=['lebleu', 'lebleu.tests'],
+      packages=['lebleu'],
       classifiers=[
           'Development Status :: 4 - Beta',
           'Intended Audience :: Science/Research',

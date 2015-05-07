@@ -1,7 +1,8 @@
 from __future__ import division, unicode_literals
 
 import collections
-import harry
+#import harry
+import Levenshtein
 import scipy
 import numpy as np
 
@@ -43,7 +44,7 @@ def best_scores(scores, sortidx, ref_counts, count):
         refc = ref_counts[sortidx[cursor]]
         refc = min(refc, count)
         out += refc * score
-        print('adding {} * {} = {}'.format(refc, score, refc * score))
+        #print('adding {} * {} = {}'.format(refc, score, refc * score))
         count -= refc
         cursor -= 1
     return out
@@ -92,7 +93,8 @@ class LeBLEU(BLEU):
         self.threshold = threshold
 
     def distances(self, hyp, ref):
-        return harry.compare(hyp, ref, measure='levenshtein')
+        #return harry.compare(hyp, ref, measure='levenshtein')
+        return Levenshtein.compare_lists(hyp, ref)
 
     def _eval_helper(self, hypothesis, reference):
         hyp_words = hypothesis.split()
@@ -106,9 +108,9 @@ class LeBLEU(BLEU):
         ref_strs = [' '.join(r) for (r, _) in ref_ngrams]
 
         scores = self.distances(hyp_strs, ref_strs)
-        print(scores)
+        #print(scores)
         scores = self._score(scores, hyp_strs, ref_strs)
-        print(scores)
+        #print(scores)
 
         sortidx = scores.argsort()
         ref_counts = [count for (_, count) in ref_ngrams]
@@ -124,7 +126,7 @@ class LeBLEU(BLEU):
                                            ref_counts,
                                            count)
             tot[order - 1] += count
-            print(i, hits, tot, hyp)
+            #print(i, hits, tot, hyp)
         return (hits, tot)
 
     def eval_single(self, hypothesis, reference):
@@ -145,7 +147,7 @@ class LeBLEU(BLEU):
             hyplen += len(hyp)
             reflen += len(ref)
             (h, t) = self._eval_helper(hyp, ref)
-            print('h {} t {}'.format(h, t))
+            #print('h {} t {}'.format(h, t))
             hits += h
             tot += t
         score = self.combine_scores(hits,
