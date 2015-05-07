@@ -9,7 +9,7 @@ import numpy as np
 
 def make_acceptor(n, limit):
     acc_ratio = limit / n
-    print('acc_ratio {}'.format(acc_ratio))
+    #print('acc_ratio {}'.format(acc_ratio))
     if acc_ratio < 0.5:
         m = n // limit
         return lambda i: i % m == 0
@@ -70,7 +70,7 @@ class BLEU(object):
         ngramcounts = collections.Counter()
         if self.ngram_limit is not None:
             limit = self.ngram_limit // max_n
-            print('limit {}'.format(limit))
+            #print('limit {}'.format(limit))
         else:
             limit = None
         for ngram in ngrams(tokens, max_n, min_n=1, limit=limit):
@@ -101,7 +101,7 @@ class LeBLEU(BLEU):
 
     def distances(self, hyp, ref):
         #return harry.compare(hyp, ref, measure='levenshtein')
-        return Levenshtein.compare_lists(hyp, ref, 1024.01)
+        return Levenshtein.compare_lists(hyp, ref, self.threshold)
 
     def _eval_helper(self, hypothesis, reference):
         hyp_words = hypothesis.split()
@@ -167,7 +167,8 @@ class LeBLEU(BLEU):
         num_hyps = len(hyp)
         num_refs = len(ref)
 
-        # matrix of lengths (in chars) of the longer of the compared strings
+        # matrix of lengths (in chars) of the longer
+        # of the two compared strings, for normalization
         ngram_lens = np.zeros((2, num_hyps, num_refs))
         ngram_lens[0] += np.array(
             [len(h) for h in hyp],
@@ -178,7 +179,7 @@ class LeBLEU(BLEU):
         ngram_lens = ngram_lens.max(axis=0)
 
         # distance normalized by said maxlength, negated so bigger is better
-        score = 1.0 - dist / ngram_lens
+        score = 1.0 - (dist / ngram_lens)
         # if the normalized distance is too far, no score is awarded
         score[score < self.threshold] = 0
         return score
