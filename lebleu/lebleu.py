@@ -99,9 +99,10 @@ class LeBLEU(BLEU):
         super(LeBLEU, self).__init__(max_n, ngram_limit)
         self.threshold = threshold
 
-    def distances(self, hyp, ref):
+    def distances(self, hyp, ref, bestonly):
         #return harry.compare(hyp, ref, measure='levenshtein')
-        dist = Levenshtein.compare_lists(hyp, ref, self.threshold)
+        bo = 1 if bestonly else 0
+        dist = Levenshtein.compare_lists(hyp, ref, self.threshold, bo)
         # replace special value -1 meaning "above threshold"
         dist[dist == -1] = np.NaN
         return dist
@@ -114,10 +115,23 @@ class LeBLEU(BLEU):
         ref_ngrams = self.count_ngrams(ref_words,
                                        max_n=(2 * self.max_n)
                                       ).items()
-        hyp_strs = [' '.join(h) for (h, _) in hyp_ngrams]
+        hyp_ngrams_single = [(h, c) for (h, c) in hyp_ngrams if c == 1]
+        hyp_ngrams_multi  = [(h, c) for (h, c) in hyp_ngrams if c > 1]
+        hyp_strs_single = [' '.join(h) for (h, c) in hyp_ngrams_single]
+        hyp_strs_multi  = [' '.join(h) for (h, c) in hyp_ngrams_multi]
+        
         ref_strs = [' '.join(r) for (r, _) in ref_ngrams]
 
-        scores = self.distances(hyp_strs, ref_strs)
+        hyp_ngrams = hyp_ngrams_single + hyp_ngrams_multi
+        hyp_strs = hyp_strs_single + hyp_strs_multi
+
+        scores_single = self.distances(hyp_strs_single, ref_strs, True)
+        if len(hyp_strs_multi) > 0:
+            scores_multi = self.distances(hyp_strs_multi, ref_strs, False)
+            scores = np.concatenate((scores_single, scores_multi))
+        else:
+            scores = scores_single
+
         #print(scores)
         scores = self._score(scores, hyp_strs, ref_strs)
         #print(scores)
