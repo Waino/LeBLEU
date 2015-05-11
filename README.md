@@ -9,6 +9,7 @@ Installation
 
 virtualenv --system-site-packages lebleu
 cd lebleu
+source bin/activate
 
 2) Clone repository
 
@@ -17,6 +18,8 @@ cd lebleu
 
 3) Compile and install python-Levenshtein
 
+git submodule init
+git submodule update
 cd python-Levenshtein
 python setup.py install
 
