@@ -15,15 +15,10 @@ cd lebleu
 git clone git@github.com:Waino/LeBLEU.git lebleu
 cd lebleu
 
-3) Compile and install harry
+3) Compile and install python-Levenshtein
 
-cd harry
-# make sure dependencies are installed (see README.md in harry)
-./bootstrap
-./configure --prefix=`readlink -f ../..`
-make
-make check
-make install
+cd python-Levenshtein
+python setup.py install
 
 4) Profit
 
