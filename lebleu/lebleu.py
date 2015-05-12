@@ -52,9 +52,14 @@ def best_scores(scores, sortidx, ref_counts, count):
 
 
 class BLEU(object):
-    def __init__(self, max_n=3, ngram_limit=None, average='arithmetic'):
+    def __init__(self,
+                 max_n=3,
+                 ngram_limit=None,
+                 average='arithmetic',
+                 smooth=False):
         self.max_n = max_n
         self.ngram_limit = ngram_limit
+        self.smooth = smooth
         if self.ngram_limit <= 0:
             self.ngram_limit = None
         if average == 'arithmetic':
@@ -85,6 +90,8 @@ class BLEU(object):
         return min(1.0, np.exp(1.0 - (reflen / hyplen)))
 
     def combine_scores(self, hits, tot, hyplen, reflen):
+        if self.smooth:
+            hits = self._smooth(hits)
         precisions = hits / tot
         # FIXME: warn when dropping nans?
         precisions = precisions[~np.isnan(precisions)]
@@ -92,11 +99,31 @@ class BLEU(object):
         penalty = self.penalty(hyplen, reflen)
         return penalty * avg
 
+    def _smooth(self, hits):
+        """The smoothing is computed by replacing a 0 hit score
+        with 1 / ( 2^k ), where k is the distance from the last
+        n-gram length with non-zero hits.
+        """
+        last = None
+        for (i, h) in enumerate(hits):
+            if h == 0:
+                if last is None:
+                    last = i - 1
+                hits[i] = 1. / 2**(i - last)
+        return hits
 
 class LeBLEU(BLEU):
     """LeBLEU: Soft BLEU score based on letter edits / Levenshtein distance"""
-    def __init__(self, max_n=3, ngram_limit=2000, threshold=0.4):
-        super(LeBLEU, self).__init__(max_n, ngram_limit)
+    def __init__(self,
+                 max_n=3,
+                 threshold=0.4,
+                 ngram_limit=2000,
+                 average='arithmetic',
+                 smooth=False):
+        super(LeBLEU, self).__init__(max_n,
+                                     ngram_limit,
+                                     average,
+                                     smooth)
         self.threshold = threshold
 
     def distances(self, hyp, ref, bestonly):
@@ -115,6 +142,7 @@ class LeBLEU(BLEU):
         ref_ngrams = self.count_ngrams(ref_words,
                                        max_n=(2 * self.max_n)
                                       ).items()
+        # separate n-grams for which 1-best is enough
         hyp_ngrams_single = [(h, c) for (h, c) in hyp_ngrams if c == 1]
         hyp_ngrams_multi  = [(h, c) for (h, c) in hyp_ngrams if c > 1]
         hyp_strs_single = [' '.join(h) for (h, c) in hyp_ngrams_single]
