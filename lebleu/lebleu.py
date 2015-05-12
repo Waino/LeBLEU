@@ -1,9 +1,7 @@
 from __future__ import division, unicode_literals
 
 import collections
-#import harry
 import Levenshtein
-import scipy
 import numpy as np
 
 
@@ -51,6 +49,11 @@ def best_scores(scores, sortidx, ref_counts, count):
     return out
 
 
+def gmean(vec):
+    """Geometric mean"""
+    return np.exp(np.mean(np.log(vec)))
+
+
 class BLEU(object):
     def __init__(self,
                  max_n=3,
@@ -65,7 +68,7 @@ class BLEU(object):
         if average == 'arithmetic':
             self.mean = np.mean
         elif average == 'geometric':
-            self.mean = scipy.stats.mstats.gmean
+            self.mean = gmean
         else:
             raise Exception('Unknown averaging method "{}"'.format(average))
 
@@ -127,7 +130,6 @@ class LeBLEU(BLEU):
         self.threshold = threshold
 
     def distances(self, hyp, ref, bestonly):
-        #return harry.compare(hyp, ref, measure='levenshtein')
         bo = 1 if bestonly else 0
         dist = Levenshtein.compare_lists(hyp, ref, self.threshold, bo)
         # replace special value -1 meaning "above threshold"

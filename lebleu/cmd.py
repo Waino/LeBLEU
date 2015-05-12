@@ -40,7 +40,8 @@ FIXME
     parser.add_argument('--smooth-average', dest='smooth',
                         default=False, action='store_true',
                         help='Smooth the n-gram scores to get non-zero '
-                             'aggregate score with geometric mean.')
+                             'aggregate score with geometric mean. '
+                             'Mainly useful for sentence level scores.')
     parser.add_argument('--sampling', dest='ngram_limit',
                         type=int, default=2000,
                         help='Approximate maximum number of n-grams '
