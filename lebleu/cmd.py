@@ -1,9 +1,12 @@
 #!/usr/bin/env python
+from __future__ import unicode_literals
 
 import argparse
+import codecs
 import sys
 #from . import lebleu
 import lebleu
+import locale
 
 def get_parser():
     parser = argparse.ArgumentParser(
@@ -19,6 +22,10 @@ FIXME
     parser.add_argument('reffile',
                         metavar='<ref_file>',
                         help='Reference file')
+
+    parser.add_argument('-e', '--encoding', dest='encoding',
+                        type=str, default=None,
+                        help='Override encoding of locale.')
 
     parser.add_argument('-s', '--sentence', dest='sentence',
                         default=False, action='store_true',
@@ -59,8 +66,12 @@ def main(args):
         average=args.average,
         smooth=args.smooth)
 
-    with open(args.reffile, 'r') as reffobj:
-        with open(args.hypfile, 'r') as hypfobj:
+    if args.encoding is not None:
+        encoding = args.encoding
+    else:
+        encoding = locale.getpreferredencoding()
+    with codecs.open(args.reffile, 'r', encoding=encoding) as reffobj:
+        with codecs.open(args.hypfile, 'r', encoding=encoding) as hypfobj:
             ref = (line.strip() for line in reffobj)
             hyp = (line.strip() for line in hypfobj)
             if args.sentence:
