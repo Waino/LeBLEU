@@ -234,6 +234,9 @@ class LeBLEU(BLEU):
         nearmatch = np.abs(score - self.threshold) < 0.01
         for (i, j) in zip(*np.where(nearmatch)):
             print('near {}: "{}" <-> "{}"'.format(score[i, j], hyp[i], ref[j]))
+        # translate and scale to avoid discontinuity at threshold
+        score -= self.threshold
+        score *= (1.0 / (1.0 - self.threshold))
         # if the normalized distance is too far, no score is awarded
-        score[score < self.threshold] = 0
+        score[score < 0] = 0
         return score
