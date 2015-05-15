@@ -100,6 +100,7 @@ class BLEU(object):
         precisions = precisions[~np.isnan(precisions)]
         avg = self.mean(precisions)
         penalty = self.penalty(hyplen, reflen)
+        print('n-gram precisions: {} penalty: {}'.format(precisions, penalty))
         return penalty * avg
 
     def _smooth(self, hits):
@@ -229,6 +230,10 @@ class LeBLEU(BLEU):
         score = 1.0 - (dist / ngram_lens)
         # set lower-bound pruned comparisons to zero score
         score[np.isnan(score)] = 0
+        # debug: print near threshold matches
+        nearmatch = np.abs(score - self.threshold) < 0.01
+        for (i, j) in zip(*np.where(nearmatch)):
+            print('near {}: "{}" <-> "{}"'.format(score[i, j], hyp[i], ref[j]))
         # if the normalized distance is too far, no score is awarded
         score[score < self.threshold] = 0
         return score
