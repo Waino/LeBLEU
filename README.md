@@ -7,21 +7,21 @@ Installation
 
 1) Create virtual environment
 
-virtualenv --system-site-packages lebleu
-cd lebleu
-source bin/activate
+virtualenv --system-site-packages lebleu  
+cd lebleu  
+source bin/activate  
 
 2) Clone repository
 
-git clone git@github.com:Waino/LeBLEU.git lebleu
-cd lebleu
+git clone git@github.com:Waino/LeBLEU.git lebleu  
+cd lebleu  
 
 3) Compile and install python-Levenshtein
 
-git submodule init
-git submodule update
-cd python-Levenshtein
-python setup.py install
+git submodule init  
+git submodule update  
+cd python-Levenshtein  
+python setup.py install  
 
 4) Profit
 
