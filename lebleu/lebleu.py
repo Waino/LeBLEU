@@ -31,7 +31,12 @@ def ngrams(seq, max_n, min_n=1, limit=None):
         staggered.pop()
 
 
-def best_scores(scores, sortidx, ref_counts, count):
+def best_scores(scores,
+                sortidx,
+                ref_counts,
+                count,
+                hyp_str,
+                ref_strs):
     """sum together the best scores, taking reference counts into account"""
     out = 0.0
     cursor = -1     # best scores at end of sorted matrix
@@ -43,7 +48,9 @@ def best_scores(scores, sortidx, ref_counts, count):
         refc = ref_counts[sortidx[cursor]]
         refc = min(refc, count)
         out += refc * score
-        #print('adding {} * {} = {}'.format(refc, score, refc * score))
+        print('"{}" <-> "{}": {} * {} = {}'.format(
+            hyp_str, ref_strs[sortidx[cursor]],
+            refc, score, refc * score))
         count -= refc
         cursor -= 1
     return out
@@ -179,7 +186,9 @@ class LeBLEU(BLEU):
             hits[order - 1] += best_scores(scores[i],
                                            sortidx[i],
                                            ref_counts,
-                                           count)
+                                           count,
+                                           hyp_strs[i],
+                                           ref_strs)
             tot[order - 1] += count
             #print(i, hits, tot, hyp)
         return (hits, tot)
