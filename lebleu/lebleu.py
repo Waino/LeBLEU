@@ -48,9 +48,9 @@ def best_scores(scores,
         refc = ref_counts[sortidx[cursor]]
         refc = min(refc, count)
         out += refc * score
-        print('"{}" <-> "{}": {} * {} = {}'.format(
-            hyp_str, ref_strs[sortidx[cursor]],
-            refc, score, refc * score))
+        #print('"{}" <-> "{}": {} * {} = {}'.format(
+        #    hyp_str, ref_strs[sortidx[cursor]],
+        #    refc, score, refc * score))
         count -= refc
         cursor -= 1
     return out
@@ -107,7 +107,7 @@ class BLEU(object):
         precisions = precisions[~np.isnan(precisions)]
         avg = self.mean(precisions)
         penalty = self.penalty(hyplen, reflen)
-        print('n-gram precisions: {} penalty: {}'.format(precisions, penalty))
+        #print('n-gram precisions: {} penalty: {}'.format(precisions, penalty))
         return penalty * avg
 
     def _smooth(self, hits):
@@ -241,8 +241,8 @@ class LeBLEU(BLEU):
         score[np.isnan(score)] = 0
         # debug: print near threshold matches
         nearmatch = np.abs(score - self.threshold) < 0.01
-        for (i, j) in zip(*np.where(nearmatch)):
-            print('near {}: "{}" <-> "{}"'.format(score[i, j], hyp[i], ref[j]))
+        #for (i, j) in zip(*np.where(nearmatch)):
+        #    print('near {}: "{}" <-> "{}"'.format(score[i, j], hyp[i], ref[j]))
         # if the normalized distance is too far, no score is awarded
         score[score < self.threshold] = 0
         return score
