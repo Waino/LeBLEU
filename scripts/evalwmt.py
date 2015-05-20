@@ -11,7 +11,6 @@ import os
 #from mteval import *    # FIXME
 
 if __name__ == "__main__":
-    import sys
     import argparse
     parser = argparse.ArgumentParser(
         description="""Script for running MT evaluations for WMT data set""")
@@ -98,16 +97,21 @@ if __name__ == "__main__":
             name = args.name
         else:
             name = metric
-        outfilename = os.path.join(args.outputdir, name+".system_level.scores") 
+        outfilename = os.path.join(args.outputdir, name+".system_level.scores")
         with codecs.open(outfilename, 'w', encoding=encoding) as sysout:
             for k, score in system_results[metric].items():
                 dataset, lp, system = k
-                sysout.write("\t".join((name, lp, dataset, system, "%.6f" % score)) + "\n")
+                sysout.write(
+                    "\t".join((name, lp, dataset, system, "%.6f" % score)))
+                sysout.write("\n")
 
         outfilename = os.path.join(args.outputdir, name+".segment_level.scores")
         with codecs.open(outfilename, 'w', encoding=encoding) as segout:
             for k, scores in segment_results[metric].items():
                 dataset, lp, system = k
                 for i in range(len(scores)):
-                    segout.write("\t".join((name, lp, dataset, system, str(i+1), "%.6f" % scores[i])) + "\n")
+                    segout.write("\t".join(
+                        (name, lp, dataset, system,
+                         str(i + 1), "%.6f" % scores[i])))
+                    segout.write("\n")
 

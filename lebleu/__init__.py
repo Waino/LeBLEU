@@ -17,8 +17,20 @@ _logger = logging.getLogger(__name__)
 def get_version():
     return __version__
 
+
 # The public api imports need to be at the end of the file,
 # so that the package global names are available to the modules
 # when they are imported.
 
 from .lebleu import LeBLEU
+
+# Convenience functions
+
+def eval_single(*args, **kwargs):
+    lb = LeBLEU(**kwargs)
+    return lb.eval_single(*args)
+
+
+def eval(*args, **kwargs):
+    lb = LeBLEU(**kwargs)
+    return lb.eval(*args)
