@@ -102,8 +102,9 @@ class BLEU(object):
     def combine_scores(self, hits, tot, hyplen, reflen):
         if self.smooth:
             hits = self._smooth(hits)
+        tot = np.array(tot)
+        tot[tot == 0] = np.nan
         precisions = hits / tot
-        # FIXME: warn when dropping nans?
         precisions = precisions[~np.isnan(precisions)]
         avg = self.mean(precisions)
         penalty = self.penalty(hyplen, reflen)

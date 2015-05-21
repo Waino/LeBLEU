@@ -6,9 +6,37 @@ import codecs
 import glob
 import locale
 import logging
+import re
 import os
+import sys
 
-#from mteval import *    # FIXME
+RE_LANG_PAIR = re.compile(r'^([a-z][a-z])-([a-z][a-z])$')
+
+def metadata_from_name(trfile):
+    path, basename = os.path.split(trfile)
+    pathparts = path.split("/")
+    sysparts = []
+    lp = None
+    dataset = None
+    for namepart in basename.split('.'):
+        if len(namepart) == 0:
+            continue
+        m = RE_LANG_PAIR.match(namepart)
+        if m:
+            if lp is not None:
+                logging.warn('AMBIGUOUS LANGPAIR: "{}" or "{}"'.format(
+                    namepart, lp))
+            lp = namepart
+            l1, l2 = m.groups()
+            continue
+        if namepart in pathparts:
+            if dataset is not None:
+                logging.warn('AMBIGUOUS DATASET: "{}" or "{}"'.format(
+                    namepart, dataset))
+            dataset = namepart
+            continue
+        sysparts.append(namepart)
+    return dataset, lp, l1, l2, '.'.join(sysparts)
 
 if __name__ == "__main__":
     import argparse
@@ -53,23 +81,30 @@ if __name__ == "__main__":
 
     kwparams = ast.literal_eval(args.params)
 
-    trfiles = glob.glob(os.path.join(args.datadir,
-                                     "system-outputs") + "/*/*/*")
+    trfiles = glob.glob(
+        os.path.join(args.datadir, "system-outputs")
+        + "/*/*/*")
     system_results = collections.defaultdict(dict)
     segment_results = collections.defaultdict(dict)
     for trfile in trfiles:
         try:
             # lp: language pair
-            dataset, lp, system = os.path.split(trfile)[1].split(".")
+            dataset, lp, l1, l2, system = metadata_from_name(trfile)
         except ValueError:
             logging.warning("Skipping %s" % trfile)
             continue
 
-        l1, l2 = lp.split("-")
         logging.info("%s %s %s" % (dataset, lp, system))
         reffile = os.path.join(args.datadir,
                                "references",
-                               dataset+"-ref."+l2)
+                               '{}-ref.{}'.format(dataset, l2))
+        if not os.path.exists(reffile):
+            reffile = os.path.join(args.datadir,
+                                   "references",
+                                   '{}-ref.{}'.format(dataset, lp))
+        if not os.path.exists(reffile):
+            logging.warning("Skipping %s due to lack of ref" % trfile)
+            continue
         logging.info("%s" % reffile)
         logging.info("%s" % trfile)
 
@@ -85,7 +120,7 @@ if __name__ == "__main__":
             segment_results[metric][(dataset, lp, system)] = scores
 
             func = module.eval
-            score = func(hyps, refs, **kwparams)[0]
+            score = func(hyps, refs, **kwparams)
             system_results[metric][(dataset, lp, system)] = score
             logging.info("%s" % score)
 
@@ -97,7 +132,11 @@ if __name__ == "__main__":
             name = args.name
         else:
             name = metric
-        outfilename = os.path.join(args.outputdir, name+".system_level.scores")
+        sysoutputdir = os.path.join(args.outputdir, name)
+        if not os.path.isdir(sysoutputdir):
+            os.mkdir(sysoutputdir)
+        outfilename = os.path.join(sysoutputdir,
+                                   name + ".system_level.scores")
         with codecs.open(outfilename, 'w', encoding=encoding) as sysout:
             for k, score in system_results[metric].items():
                 dataset, lp, system = k
@@ -105,7 +144,8 @@ if __name__ == "__main__":
                     "\t".join((name, lp, dataset, system, "%.6f" % score)))
                 sysout.write("\n")
 
-        outfilename = os.path.join(args.outputdir, name+".segment_level.scores")
+        outfilename = os.path.join(sysoutputdir,
+                                   name + ".segment_level.scores")
         with codecs.open(outfilename, 'w', encoding=encoding) as segout:
             for k, scores in segment_results[metric].items():
                 dataset, lp, system = k
