@@ -136,7 +136,7 @@ if __name__ == "__main__":
         if not os.path.isdir(sysoutputdir):
             os.mkdir(sysoutputdir)
         outfilename = os.path.join(sysoutputdir,
-                                   name + ".system_level.scores")
+                                   name + ".sys.score")
         with codecs.open(outfilename, 'w', encoding=encoding) as sysout:
             for k, score in system_results[metric].items():
                 dataset, lp, system = k
@@ -145,7 +145,7 @@ if __name__ == "__main__":
                 sysout.write("\n")
 
         outfilename = os.path.join(sysoutputdir,
-                                   name + ".segment_level.scores")
+                                   name + ".seg.score")
         with codecs.open(outfilename, 'w', encoding=encoding) as segout:
             for k, scores in segment_results[metric].items():
                 dataset, lp, system = k
