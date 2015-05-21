@@ -2,7 +2,10 @@ from __future__ import division, unicode_literals
 
 import collections
 import Levenshtein
+import logging
 import numpy as np
+
+_logger = logging.getLogger(__name__)
 
 
 def make_acceptor(n, limit):
@@ -108,7 +111,8 @@ class BLEU(object):
         precisions = precisions[~np.isnan(precisions)]
         avg = self.mean(precisions)
         penalty = self.penalty(hyplen, reflen)
-        #print('n-gram precisions: {} penalty: {}'.format(precisions, penalty))
+        _logger.debug('n-gram precisions: {} penalty: {}'.format(
+            precisions, penalty))
         return penalty * avg
 
     def _smooth(self, hits):
@@ -137,6 +141,9 @@ class LeBLEU(BLEU):
                                      average,
                                      smooth)
         self.threshold = threshold
+        _logger.info('LeBLEU: max_n={}, threshold={}, ngram_limit={}, '
+                     'average={}, smooth={}'.format(
+                        max_n, threshold, ngram_limit, average, smooth))
 
     def distances(self, hyp, ref, bestonly):
         bo = 1 if bestonly else 0
@@ -241,7 +248,7 @@ class LeBLEU(BLEU):
         # set lower-bound pruned comparisons to zero score
         score[np.isnan(score)] = 0
         # debug: print near threshold matches
-        nearmatch = np.abs(score - self.threshold) < 0.01
+        #nearmatch = np.abs(score - self.threshold) < 0.01
         #for (i, j) in zip(*np.where(nearmatch)):
         #    print('near {}: "{}" <-> "{}"'.format(score[i, j], hyp[i], ref[j]))
         # if the normalized distance is too far, no score is awarded
