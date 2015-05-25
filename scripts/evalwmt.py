@@ -94,7 +94,7 @@ if __name__ == "__main__":
             logging.warning("Skipping %s" % trfile)
             continue
 
-        logging.info("%s %s %s" % (dataset, lp, system))
+        logging.info('{} , {} , {} ({})'.format(dataset, lp, system, kwparams))
         reffile = os.path.join(args.datadir,
                                "references",
                                '{}-ref.{}'.format(dataset, l2))
