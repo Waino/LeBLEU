@@ -141,9 +141,9 @@ class LeBLEU(BLEU):
                                      average,
                                      smooth)
         self.threshold = threshold
-        _logger.info('LeBLEU: max_n={}, threshold={}, ngram_limit={}, '
-                     'average={}, smooth={}'.format(
-                        max_n, threshold, ngram_limit, average, smooth))
+        #_logger.info('LeBLEU: max_n={}, threshold={}, ngram_limit={}, '
+        #             'average={}, smooth={}'.format(
+        #                max_n, threshold, ngram_limit, average, smooth))
 
     def distances(self, hyp, ref, bestonly):
         bo = 1 if bestonly else 0
@@ -171,10 +171,16 @@ class LeBLEU(BLEU):
         hyp_ngrams = hyp_ngrams_single + hyp_ngrams_multi
         hyp_strs = hyp_strs_single + hyp_strs_multi
 
-        scores_single = self.distances(hyp_strs_single, ref_strs, True)
+        if len(hyp_strs_single) > 0:
+            scores_single = self.distances(hyp_strs_single, ref_strs, True)
+        else:
+            scores_single = None
         if len(hyp_strs_multi) > 0:
             scores_multi = self.distances(hyp_strs_multi, ref_strs, False)
-            scores = np.concatenate((scores_single, scores_multi))
+            if scores_single is None:
+                scores = scores_multi
+            else:
+                scores = np.concatenate((scores_single, scores_multi))
         else:
             scores = scores_single
 
@@ -202,6 +208,8 @@ class LeBLEU(BLEU):
         return (hits, tot)
 
     def eval_single(self, hypothesis, reference):
+        if len(hypothesis) == 0:
+            return 0
         (hits, tot) = self._eval_helper(hypothesis, reference)
         score = self.combine_scores(hits,
                                     tot,
