@@ -260,6 +260,9 @@ class LeBLEU(BLEU):
 
         # distance normalized by said maxlength, negated so bigger is better
         score = 1.0 - (dist / ngram_lens)
+        # fix for empty hypothesis
+        if len(score) == 0:
+            return score
         # set lower-bound pruned comparisons to zero score
         score[np.isnan(score)] = 0
         # debug: print near threshold matches
