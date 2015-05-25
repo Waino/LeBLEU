@@ -226,10 +226,17 @@ class LeBLEU(BLEU):
         for hyp, ref in zip(hyps, refs):
             hyplen += len(hyp)
             reflen += len(ref)
-            (h, t) = self._eval_helper(hyp, ref)
+            if hyplen == 0:
+                (h, t) = (0, 0)
+            else:
+                (h, t) = self._eval_helper(hyp, ref)
             #print('h {} t {}'.format(h, t))
             hits += h
             tot += t
+        if hyplen == 0:
+            _logger.warn('system hypothesis is empty (unlikely)')
+            return 0
+            
         score = self.combine_scores(hits,
                                     tot,
                                     hyplen,
