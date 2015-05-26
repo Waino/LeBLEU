@@ -131,7 +131,7 @@ class BLEU(object):
 class LeBLEU(BLEU):
     """LeBLEU: Soft BLEU score based on letter edits / Levenshtein distance"""
     def __init__(self,
-                 max_n=3,
+                 max_n=4,
                  threshold=0.4,
                  ngram_limit=2000,
                  average='arithmetic',

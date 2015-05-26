@@ -31,7 +31,7 @@ FIXME
                         default=False, action='store_true',
                         help='Output sentence level score')
     parser.add_argument('-n', '--max-n', dest='max_n',
-                        type=int, default=3,
+                        type=int, default=4,
                         help='Maximum hypothesis n-gram length. '
                              'Default "%(default)s").')
     parser.add_argument('-t', '--threshold', dest='threshold',
