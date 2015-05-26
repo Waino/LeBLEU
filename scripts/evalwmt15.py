@@ -123,14 +123,7 @@ if __name__ == "__main__":
             logging.warning("Skipping %s" % trfile)
             continue
 
-        if args.params == 'seg':
-            kwparams = LANGPAIR_OPTIMA_SEG[lp]
-        elif args.params == 'sys':
-            kwparams = LANGPAIR_OPTIMA_SYS[lp]
-        else:
-            raise Exception('UGLYHACK: args.params must be "seg" or "sys"')
 
-        logging.info('{} , {} , {} ({})'.format(dataset, lp, system, kwparams))
         reffile = os.path.join(args.datadir,
                                "references",
                                '{}-{}{}-ref.{}'.format(dataset, l1, l2, l2))
@@ -149,10 +142,14 @@ if __name__ == "__main__":
 
         for (metric, module) in metrics:
             func = module.eval_single
+            kwparams = LANGPAIR_OPTIMA_SEG[lp]
+            logging.info('{} , {} , {} ({})'.format(dataset, lp, system, kwparams))
             scores = [func(x, y, **kwparams) for x, y in zip(hyps, refs)]
             segment_results[metric][(dataset, lp, system)] = scores
 
             func = module.eval
+            kwparams = LANGPAIR_OPTIMA_SYS[lp]
+            logging.info('{} , {} , {} ({})'.format(dataset, lp, system, kwparams))
             score = func(hyps, refs, **kwparams)
             system_results[metric][(dataset, lp, system)] = score
             logging.info("%s" % score)
