@@ -58,6 +58,19 @@ FIXME
                              'Default "%(default)s").')
     return parser
 
+
+def strip_blanks(lines, fileid):
+    blanks_encountered = False
+    for line in lines:
+        line = line.strip()
+        if len(line) > 0:
+            yield line
+        else:
+            if not blanks_encountered:
+                print('WARNING: Blank lines in {}, removing'.format(fileid))
+                blanks_encountered = True
+
+
 def main(args):
     lb = lebleu.LeBLEU(
         max_n=args.max_n,
@@ -72,8 +85,8 @@ def main(args):
         encoding = locale.getpreferredencoding()
     with codecs.open(args.reffile, 'r', encoding=encoding) as reffobj:
         with codecs.open(args.hypfile, 'r', encoding=encoding) as hypfobj:
-            ref = (line.strip() for line in reffobj)
-            hyp = (line.strip() for line in hypfobj)
+            ref = strip_blanks(reffobj, 'reference')
+            hyp = strip_blanks(hypfobj, 'hypothesis')
             if args.sentence:
                 for (i, (h, r)) in enumerate(zip(hyp, ref)):
                     score = lb.eval_single(h, r)
