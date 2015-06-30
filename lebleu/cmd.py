@@ -72,8 +72,9 @@ def main(args):
         encoding = locale.getpreferredencoding()
     with codecs.open(args.reffile, 'r', encoding=encoding) as reffobj:
         with codecs.open(args.hypfile, 'r', encoding=encoding) as hypfobj:
-            ref = (line.strip() for line in reffobj)
-            hyp = (line.strip() for line in hypfobj)
+            ref = [line.strip() for line in reffobj]
+            hyp = [line.strip() for line in hypfobj]
+            assert len(ref) == len(hyp), 'length mismatch'
             if args.sentence:
                 for (i, (h, r)) in enumerate(zip(hyp, ref)):
                     score = lb.eval_single(h, r)
