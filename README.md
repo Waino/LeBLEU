@@ -1,4 +1,4 @@
-lebleu - Quick start
+LeBLEU - Quick start
 ===========================
 
 
@@ -13,7 +13,7 @@ source bin/activate
 
 2) Clone repository
 
-git clone git@github.com:Waino/LeBLEU.git lebleu  
+git clone https://github.com/Waino/LeBLEU.git lebleu  
 cd lebleu  
 
 3) Compile and install python-Levenshtein
@@ -32,6 +32,13 @@ python setup.py install
 
 For details, see http://docs.python.org/install/
 
+Citing
+------
+
+If you use LeBLEU in a scientific publication, we ask you to cite
+
+FIXME  
+
 
 Documentation
 -------------
@@ -41,4 +48,4 @@ FIXME
 Contact
 -------
 
-Questions or feedback? Email: stig-arne.gronroos@aalto.fi
+Questions or feedback? Email: stig-arne.gronroos (at) aalto (dot) fi
