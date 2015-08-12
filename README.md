@@ -37,7 +37,10 @@ Citing
 
 If you use LeBLEU in a scientific publication, we ask you to cite
 
-FIXME  
+Virpioja, S. and Grönroos, S.-A. (2015).  
+LeBLEU: N-gram-based Translation Evaluation Score for Morphologically Complex Languages.  
+In Proceedings of the Workshop on Machine Translation 2015.  
+Lisbon, Portugal, September 17-18, Association for Computational Linguistics.  
 
 
 Documentation
