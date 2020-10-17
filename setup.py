@@ -27,8 +27,8 @@ setup(name='lebleu',
           'Topic :: Scientific/Engineering',
       ],
       license="BSD",
-      #scripts=['scripts/lebleu',
-      #        ],
+      scripts=['scripts/lebleu',
+              ],
       #install_requires=requires,
       #extras_require={
       #    'docs': [l.strip() for l in open('docs/build_requirements.txt')]
