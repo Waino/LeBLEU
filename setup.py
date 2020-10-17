@@ -9,7 +9,7 @@ import re
 main_py = open('lebleu/__init__.py').read()
 metadata = dict(re.findall("__([a-z]+)__ = '([^']+)'", main_py))
 
-#requires = [ ]
+requires = [ 'numpy' ]
 
 setup(name='lebleu',
       version=metadata['version'],
@@ -29,7 +29,7 @@ setup(name='lebleu',
       license="BSD",
       scripts=['scripts/lebleu',
               ],
-      #install_requires=requires,
+      install_requires=requires,
       #extras_require={
       #    'docs': [l.strip() for l in open('docs/build_requirements.txt')]
       #}

@@ -1,13 +1,17 @@
 LeBLEU - Quick start
 ===========================
 
+LeBLEU **requires python2** (which is obsolete).
+Running LeBLEU under python3 results in
+
+    Segmentation fault (core dumped)
 
 Installation
 ------------
 
-1) Create virtual environment
+1) Create python2 virtual environment
 
-virtualenv --system-site-packages lebleu  
+virtualenv --python=python2 lebleu  
 cd lebleu  
 source bin/activate  
 
